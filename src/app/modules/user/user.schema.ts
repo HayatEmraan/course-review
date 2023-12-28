@@ -1,7 +1,9 @@
 import { Schema, model } from 'mongoose'
-import { TUser } from './user.type'
+import { ExtentUser, TUser, TUserJWT } from './user.type'
+import AppError from '../../errors/AppError'
+import { comparePassword } from '../../utils/bcrypt'
 
-const userSchema = new Schema<TUser>(
+const userSchema = new Schema<TUser, ExtentUser>(
   {
     username: {
       type: String,
@@ -30,4 +32,15 @@ const userSchema = new Schema<TUser>(
   },
 )
 
-export const UserModel = model<TUser>('User', userSchema)
+userSchema.statics.isMatch = async function (
+  user: Omit<TUserJWT, 'iat' | 'exp'>,
+  password: string,
+) {
+  const userFound = await this.findOne(user).select('password')
+  if (!userFound) {
+    throw new AppError(404, 'User not found')
+  }
+  return await comparePassword(password, userFound.password)
+}
+
+export const UserModel = model<TUser, ExtentUser>('User', userSchema)

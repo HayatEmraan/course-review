@@ -11,7 +11,6 @@ const CreateUser: RequestHandler = catchAsync(async (req, res) => {
   })
 })
 
-
 const UserLogin: RequestHandler = catchAsync(async (req, res) => {
   globalResponseSend(res, {
     status: 200,
@@ -20,7 +19,16 @@ const UserLogin: RequestHandler = catchAsync(async (req, res) => {
   })
 })
 
+const changePassword: RequestHandler = catchAsync(async (req, res) => {
+  return globalResponseSend(res, {
+    status: 200,
+    message: 'Password changed successfully',
+    data: await UserService.changePassword(req.user, req.body),
+  })
+})
+
 export const UserController = {
-    CreateUser,
-    UserLogin
+  CreateUser,
+  UserLogin,
+  changePassword,
 }

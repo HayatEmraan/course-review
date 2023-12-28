@@ -1,4 +1,5 @@
-import { Types } from 'mongoose'
+/* eslint-disable no-unused-vars */
+import { Model, Types } from 'mongoose'
 
 export type TUser = {
   username: string
@@ -18,4 +19,16 @@ export type TUserJWT = {
   email: string
   iat: number
   exp: number
+}
+
+export type TUserChangePassword = {
+  currentPassword: string
+  newPassword: string
+}
+
+export interface ExtentUser extends Model<TUser> {
+  isMatch(
+    user: Omit<TUserJWT, 'iat' | 'exp'>,
+    password: string,
+  ): Promise<boolean>
 }

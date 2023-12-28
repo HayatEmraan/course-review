@@ -15,3 +15,12 @@ export const userLoginValidation = z.object({
     password: z.string().min(1, { message: 'Password is required' }),
   }),
 })
+
+export const UserPasswordValidation = z.object({
+  body: z.object({
+    currentPassword: z
+      .string()
+      .min(1, { message: ' Current Password is required' }),
+    newPassword: z.string().min(1, { message: ' New Password is required' }),
+  }),
+})

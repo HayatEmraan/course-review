@@ -20,7 +20,7 @@ const UserLogin: RequestHandler = catchAsync(async (req, res) => {
 })
 
 const changePassword: RequestHandler = catchAsync(async (req, res) => {
-  return globalResponseSend(res, {
+  globalResponseSend(res, {
     status: 200,
     message: 'Password changed successfully',
     data: await UserService.changePassword(req.user, req.body),

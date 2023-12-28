@@ -7,7 +7,7 @@ const createCategory: RequestHandler = catchAsync(async (req, res) => {
   return globalResponseSend(res, {
     status: 201,
     message: 'Category created successfully',
-    data: await CategoryService.createCategory(req.body),
+    data: await CategoryService.createCategory(req.user, req.body),
   })
 })
 

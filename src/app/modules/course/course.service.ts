@@ -89,7 +89,9 @@ const getCourses = async (query: Record<string, unknown>) => {
       limit: parseInt((limit as string) || '10'),
       total: await CourseModel.estimatedDocumentCount(),
     },
-    data: await mainQuery.limit(limitCount).skip(pageCount * limitCount),
+    data: {
+      courses: await mainQuery.limit(limitCount).skip(pageCount * limitCount),
+    },
   }
 }
 
@@ -107,6 +109,12 @@ const updateACourse = async (id: string, payload: Partial<TCourse>) => {
   }
   try {
     await session.startTransaction()
+
+    const exitCourse = await CourseModel.findById(id)
+    if (!exitCourse) {
+      throw new AppError(404, 'Course not found')
+    }
+
     const deletedTags = tags
       ?.filter(tag => tag.name && tag.isDeleted)
       .map(tag => tag.name)
@@ -152,21 +160,21 @@ const updateACourse = async (id: string, payload: Partial<TCourse>) => {
       id,
       { ...courseInfo, durationInWeeks },
       { new: true, session },
-    )
+    ).populate('createdBy')
 
     await session.commitTransaction()
     await session.endSession()
     return result
-  } catch (error) {
+  } catch (error: any) {
     await session.abortTransaction()
     await session.endSession()
-    throw new AppError(500, 'Something went wrong')
+    throw new AppError(error.status || 500, error.message)
   }
 }
 
 const getCourseWithReviews = async (id: string) => {
-  const course = await CourseModel.findById(id)
-  const reviews = await ReviewModel.find({ courseId: id })
+  const course = await CourseModel.findById(id).populate('createdBy')
+  const reviews = await ReviewModel.find({ courseId: id }).populate('createdBy')
   return {
     course,
     reviews,
@@ -195,22 +203,40 @@ const getCourseWithBestRating = async () => {
     {
       $limit: 1,
     },
-  ])
-    .lookup({
-      from: 'courses',
-      localField: '_id',
-      foreignField: '_id',
-      as: 'course',
-    })
-    .project({
-      _id: 0,
-      course: 1,
-      averageRating: 1,
-      reviewCount: 1,
-    })
+    {
+      $lookup: {
+        from: 'courses',
+        localField: '_id',
+        foreignField: '_id',
+        as: 'course',
+      },
+    },
+    {
+      $unwind: '$course',
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'course.createdBy',
+        foreignField: '_id',
+        as: 'course.createdBy',
+      },
+    },
+    {
+      $unwind: '$course.createdBy',
+    },
+    {
+      $unset: ['course.createdBy.password'],
+    },
+  ]).project({
+    _id: 0,
+    course: 1,
+    averageRating: 1,
+    reviewCount: 1,
+  })
 
   return {
-    course: avgRatingNCount[0]?.course[0],
+    course: avgRatingNCount[0]?.course,
     averageRating: avgRatingNCount[0]?.averageRating,
     reviewCount: avgRatingNCount[0]?.reviewCount,
   }

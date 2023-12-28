@@ -7,20 +7,20 @@ import { authOptions } from '../user/user.utils'
 // Course Routes
 export const CourseRoutes = Router()
 
-CourseRoutes.post(
+CourseRoutes.get('/best', CourseController.bestCourseWithRating)
+
+// Courses Routes
+export const CoursesRoutes = Router()
+CoursesRoutes.post(
   '/',
   auth(authOptions.ADMIN),
   requestValidation(courseValidation),
   CourseController.createCourse,
 )
-CourseRoutes.get('/best', CourseController.bestCourseWithRating)
-
-// Courses Routes
-export const CoursesRoutes = Router()
-
 CoursesRoutes.get('/', CourseController.getCourses)
 CoursesRoutes.put(
   '/:courseId',
+  auth(authOptions.ADMIN),
   requestValidation(updateCourseValidation),
   CourseController.updateCourse,
 )

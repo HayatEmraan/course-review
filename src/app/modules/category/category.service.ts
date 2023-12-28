@@ -10,14 +10,16 @@ const createCategory = async (user: TUserJWT, payload: TCategory) => {
   if (!exitUser) {
     throw new AppError(404, 'User not found')
   }
-  return CategoryModel.create({
+  return await CategoryModel.create({
     ...payload,
     createdBy: _id,
   })
 }
 
 const getCategories = async () => {
-  return CategoryModel.find({})
+  return {
+    categories: await CategoryModel.find({}).populate('createdBy'),
+  }
 }
 
 export const CategoryService = {

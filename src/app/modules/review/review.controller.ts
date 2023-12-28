@@ -7,7 +7,7 @@ const createReview: RequestHandler = catchAsync(async (req, res) => {
   return globalResponseSend(res, {
     status: 201,
     message: 'Review created successfully',
-    data: await ReviewService.createReview(req.body),
+    data: await ReviewService.createReview(req.user, req.body),
   })
 })
 

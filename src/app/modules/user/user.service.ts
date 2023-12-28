@@ -16,7 +16,6 @@ const createUser = async (payload: TUser) => {
 
 const userLogin = async (payload: TUserLogin) => {
   const user = await UserModel.findOne({ username: payload.username })
-
   if (!user) {
     throw new AppError(404, 'User not found')
   }

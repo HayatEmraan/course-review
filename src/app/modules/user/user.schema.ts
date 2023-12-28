@@ -43,8 +43,8 @@ userSchema.statics.isMatch = async function (
   return await comparePassword(password, userFound.password)
 }
 
-userSchema.pre('save', async function (next) {
-  this.set('password', undefined)
+userSchema.post('save', async function (doc, next) {
+  doc.set('password', undefined)
   next()
 })
 

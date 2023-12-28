@@ -1,23 +1,23 @@
 import { NextFunction, Request, Response } from 'express'
 import { catchAsync } from './catchAsync'
-import AppError from '../errors/AppError'
 import { decodeJWT } from './decodeJWT'
 import { TUserJWT } from '../modules/user/user.type'
+import { unauthorizedError } from './unauthorizedError'
 
 export const auth = (...args: string[]) => {
   return catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const authHeader = req.headers.authorization
     if (!authHeader) {
-      throw new AppError(401, 'Unauthorized Access')
+      return res.status(401).json(unauthorizedError)
     }
     const decode = decodeJWT(authHeader) as TUserJWT
     if (!decode) {
-      throw new AppError(401, 'Unauthorized Access')
+      return res.status(401).json(unauthorizedError)
     }
 
     if (args.length > 0) {
       if (!args.includes(decode.role)) {
-        throw new AppError(401, 'Unauthorized Access')
+        return res.status(401).json(unauthorizedError)
       }
     }
     req.user = decode

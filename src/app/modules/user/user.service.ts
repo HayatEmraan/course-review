@@ -3,6 +3,7 @@ import { hashPassword } from '../../utils/bcrypt'
 import { encodeJWT } from '../../utils/encodeJWT'
 import { UserModel } from './user.schema'
 import { TUser, TUserChangePassword, TUserJWT, TUserLogin } from './user.type'
+import { changeAtPassword } from './user.utils'
 
 const createUser = async (payload: TUser) => {
   const { password } = payload
@@ -11,7 +12,9 @@ const createUser = async (payload: TUser) => {
     ...payload,
     password: passwordHash,
   }
-  return UserModel.create(user)
+  const result = await UserModel.create(user)
+  await changeAtPassword(result._id, passwordHash)
+  return result
 }
 
 const userLogin = async (payload: TUserLogin) => {
@@ -57,6 +60,20 @@ const changePassword = async (user: TUserJWT, payload: TUserChangePassword) => {
     throw new AppError(404, 'Current password not match')
   }
   const password = await hashPassword(payload.newPassword)
+
+  const historyChangeAt = await changeAtPassword(
+    _id,
+    password,
+    payload.newPassword,
+  )
+  if (historyChangeAt) {
+    return {
+      success: false,
+      statusCode: 400,
+      message: `Password change failed. Ensure the new password is unique and not among the last 2 used (last used on ${historyChangeAt.changeAt}).`,
+      data: null,
+    }
+  }
 
   return UserModel.findByIdAndUpdate(_id, {
     password,

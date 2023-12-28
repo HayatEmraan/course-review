@@ -8,7 +8,7 @@ const createCourse: RequestHandler = catchAsync(async (req, res) => {
   return globalResponseSend(res, {
     status: 201,
     message: 'Course created successfully',
-    data: await CourseService.createCourse(req.body),
+    data: await CourseService.createCourse(req.user, req.body),
   })
 })
 

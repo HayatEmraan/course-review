@@ -19,7 +19,11 @@ const errorTypeChecking = (error: any) => {
   } else if (error instanceof ZodError) {
     err = zodErrorHandler(error)
   } else if (error instanceof AppError) {
-    err = error
+    err = {
+      success: false,
+      message: error.message,
+      stack: error.stack,
+    }
   } else if (error.code === 11000) {
     err = duplicateErrorHandler(error)
   } else if (error instanceof Error) {

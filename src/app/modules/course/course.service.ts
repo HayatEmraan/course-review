@@ -5,8 +5,15 @@ import { detailsConst, durationCourse } from './course.constant'
 import { CourseModel } from './course.schema'
 import { TCourse } from './course.type'
 import AppError from '../../errors/AppError'
+import { TUserJWT } from '../user/user.type'
+import { UserModel } from '../user/user.schema'
 
-const createCourse = async (payload: TCourse) => {
+const createCourse = async (user: TUserJWT, payload: TCourse) => {
+  const { _id, role, email } = user
+  const exitUser = await UserModel.findOne({ _id, role, email })
+  if (!exitUser) {
+    throw new AppError(404, 'User not found')
+  }
   const durationInWeeks = await durationCourse(
     payload?.startDate,
     payload?.endDate,
@@ -14,6 +21,7 @@ const createCourse = async (payload: TCourse) => {
   return CourseModel.create({
     ...payload,
     durationInWeeks,
+    createdBy: _id,
   })
 }
 
@@ -52,7 +60,7 @@ const getCourses = async (query: Record<string, unknown>) => {
     filterQuery['tags.name'] = tags
   }
 
-  let mainQuery = CourseModel.find(filterQuery)
+  let mainQuery = CourseModel.find(filterQuery).populate('createdBy')
 
   if (minPrice && maxPrice) {
     mainQuery = mainQuery.find({
@@ -77,8 +85,8 @@ const getCourses = async (query: Record<string, unknown>) => {
 
   return {
     meta: {
-      page: parseInt(page as string || '1'),
-      limit: parseInt(limit as string || '10'),
+      page: parseInt((page as string) || '1'),
+      limit: parseInt((limit as string) || '10'),
       total: await CourseModel.estimatedDocumentCount(),
     },
     data: await mainQuery.limit(limitCount).skip(pageCount * limitCount),

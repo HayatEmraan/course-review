@@ -77,6 +77,10 @@ const CourseSchema = new Schema<TCourse>(
       required: true,
     },
     details: DetailSchema,
+    createdBy: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+    },
   },
   {
     versionKey: false,

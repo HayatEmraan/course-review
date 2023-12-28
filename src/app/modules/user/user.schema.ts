@@ -36,11 +36,16 @@ userSchema.statics.isMatch = async function (
   user: Omit<TUserJWT, 'iat' | 'exp'>,
   password: string,
 ) {
-  const userFound = await this.findOne(user).select('password')
+  const userFound = await UserModel.findOne(user).select('password')
   if (!userFound) {
     throw new AppError(404, 'User not found')
   }
   return await comparePassword(password, userFound.password)
 }
+
+userSchema.pre('save', async function (next) {
+  this.set('password', undefined)
+  next()
+})
 
 export const UserModel = model<TUser, ExtentUser>('User', userSchema)

@@ -12,6 +12,13 @@ app.use(cors())
 
 // routes middleware
 
+app.get('/', (req, res) => {
+  res.status(200).json({
+    status: 'success',
+    message: 'server is up and running!',
+  })
+})
+
 app.use('/api', router)
 
 app.all('*', (req, res) => {

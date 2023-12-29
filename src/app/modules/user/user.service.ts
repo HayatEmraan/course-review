@@ -47,11 +47,6 @@ const changePassword = async (user: TUserJWT, payload: TUserChangePassword) => {
     role,
     email,
   }
-  const exitUser = await UserModel.findOne({ _id, role, email })
-  if (!exitUser) {
-    throw new AppError(404, 'User not found')
-  }
-
   const matchPassword = await UserModel.isMatch(
     userData,
     payload.currentPassword,
